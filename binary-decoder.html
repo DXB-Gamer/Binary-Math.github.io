@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hint</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #111510;
+    --grid: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+    --muted: #666;
+    --dim: #999;
+    --text: #eceee8;
+    --accent: #d4f06e;
+    --accent-dim: rgba(212, 240, 110, 0.1);
+    --chalk: #f2f0e8;
+  }
+
+  body {
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+    background: linear-gradient(90deg, #a67c00, #f5c842, #fde992, #f5c842, #a67c00);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 0%   center; }
+    100% { background-position: 300% center; }
+  }
+
+  .label {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.02em;
+  }
+
+  .input-area { margin-bottom: 2.5rem; }
+
+  input[type="text"] {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--chalk);
+    font-family: 'DM Mono', monospace;
+    font-size: 44px;
+    font-weight: 300;
+    letter-spacing: 10px;
+    padding: 0 0 14px 0;
+    outline: none;
+    transition: border-color 0.2s;
+    caret-color: var(--accent);
+  }
+
+  input[type="text"]::placeholder { color: #333; }
+  input[type="text"]:focus { border-bottom-color: rgba(212,240,110,0.4); }
+
+  .err {
+    font-size: 11px;
+    color: #c06060;
+    margin-top: 8px;
+    min-height: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  .bits-strip {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    min-height: 46px;
+    align-items: center;
+  }
+
+  .bit {
+    width: 42px;
+    height: 42px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 400;
+    animation: popIn 0.15s ease both;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.6) translateY(6px); opacity: 0; }
+    to   { transform: scale(1)   translateY(0);   opacity: 1; }
+  }
+
+  .bit.one {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(212, 240, 110, 0.25);
+  }
+
+  .bit.zero {
+    background: rgba(255,255,255,0.02);
+    color: #3d3d3d;
+    border: 1px solid var(--border);
+  }
+
+  .result-wrap {
+    text-align: left;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: none;
+  }
+
+  .result-num {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 100px;
+    font-weight: 400;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -3px;
+  }
+
+  .breakdown {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--dim);
+  }
+
+  .sum-expr {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .sum-val {
+    color: var(--chalk);
+    font-size: 16px;
+  }
+
+  .sum-op { color: var(--muted); font-size: 14px; }
+
+  .sum-eq {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0 10px;
+  }
+
+  .sum-total {
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .empty-hint {
+    font-size: 13px;
+    color: #2e2e2e;
+    letter-spacing: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1 class="title">[|] Binary Number Decoder [|]</h1>
+  <div class="input-area" style="margin-top:2.5rem;">
+    <p class="label">Hint</p>
+    <input type="text" id="binInput" placeholder="Try : 101" maxlength="16" autocomplete="off" spellcheck="false" />
+    <div class="err" id="errMsg"></div>
+  </div>
+
+  <div class="bits-strip" id="bitsStrip">
+    <span class="empty-hint">_ _ _ _</span>
+  </div>
+
+  <div class="result-wrap" id="resultWrap">
+    <div class="result-num" id="resultNum"></div>
+  </div>
+
+  <div class="breakdown" id="breakdown"></div>
+
+</div>
+
+<script>
+  const binInput   = document.getElementById('binInput');
+  const bitsStrip  = document.getElementById('bitsStrip');
+  const errMsg     = document.getElementById('errMsg');
+  const resultWrap = document.getElementById('resultWrap');
+  const resultNum  = document.getElementById('resultNum');
+  const breakdown  = document.getElementById('breakdown');
+
+  binInput.addEventListener('input', decode);
+
+  function decode() {
+    const raw = binInput.value.trim();
+    errMsg.textContent = '';
+
+    if (!raw) {
+      bitsStrip.innerHTML = '<span class="empty-hint">_ _ _ _</span>';
+      resultWrap.style.display = 'none';
+      breakdown.innerHTML = '';
+      return;
+    }
+
+    if (!/^[01]+$/.test(raw)) {
+      errMsg.textContent = 'only 0s and 1s';
+      bitsStrip.innerHTML = '';
+      resultWrap.style.display = 'none';
+      breakdown.innerHTML = '';
+      return;
+    }
+
+    const bits = raw.split('');
+    const n = bits.length;
+    bitsStrip.innerHTML = '';
+    let total = 0;
+    const activeVals = [];
+
+    bits.forEach((b, i) => {
+      const power = n - 1 - i;
+      const val = parseInt(b) * Math.pow(2, power);
+      total += val;
+
+      const el = document.createElement('div');
+      el.className = 'bit ' + (b === '1' ? 'one' : 'zero');
+      el.style.animationDelay = (i * 0.025) + 's';
+      el.textContent = b;
+      bitsStrip.appendChild(el);
+
+      if (b === '1') activeVals.push(val);
+    });
+
+    resultWrap.style.display = 'block';
+    resultNum.textContent = total;
+
+    breakdown.innerHTML = '';
+    if (activeVals.length > 1) {
+      const expr = document.createElement('div');
+      expr.className = 'sum-expr';
+
+      activeVals.forEach((v, i) => {
+        const s = document.createElement('span');
+        s.className = 'sum-val';
+        s.textContent = v;
+        expr.appendChild(s);
+        if (i < activeVals.length - 1) {
+          const op = document.createElement('span');
+          op.className = 'sum-op';
+          op.textContent = '+';
+          expr.appendChild(op);
+        }
+      });
+
+      const line = document.createElement('div');
+      line.className = 'sum-eq';
+
+      const tot = document.createElement('span');
+      tot.className = 'sum-total';
+      tot.textContent = '= ' + total;
+
+      breakdown.appendChild(expr);
+      breakdown.appendChild(line);
+      breakdown.appendChild(tot);
+    }
+  }
+</script>
+</body>
+</html>
